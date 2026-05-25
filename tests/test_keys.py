@@ -28,6 +28,15 @@ class TestListKeys:
         )
         assert result[0]["type"] == "none"
 
+    async def test_filters_by_type(self, mock_client: AsyncMock) -> None:
+        mock_client.get.return_value = []
+        await keys.list_keys(1, key_type="ssh")
+
+        mock_client.get.assert_called_once_with(
+            "/api/project/1/keys",
+            params={"sort": "name", "order": "asc", "key_type": "ssh"},
+        )
+
 
 class TestCreateKey:
     async def test_creates_none_key(self, mock_client: AsyncMock) -> None:

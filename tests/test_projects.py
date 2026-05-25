@@ -145,3 +145,37 @@ class TestProjectViews:
 
         mock_client.delete.assert_called_once_with("/api/project/1/views/10")
         assert result == {"status": "ok"}
+
+    async def test_get_view(self, mock_client: AsyncMock) -> None:
+        mock_client.get.return_value = {"id": 10, "title": "Build"}
+        result = await projects.get_project_view(1, 10)
+
+        mock_client.get.assert_called_once_with("/api/project/1/views/10")
+        assert result["id"] == 10
+
+    async def test_update_view(self, mock_client: AsyncMock) -> None:
+        result = await projects.update_project_view(1, 10, "Build Updated", 1)
+
+        mock_client.put.assert_called_once_with(
+            "/api/project/1/views/10",
+            json={"id": 10, "title": "Build Updated", "project_id": 1, "position": 1},
+        )
+        assert result == {"status": "ok"}
+
+
+class TestGetProjectEvents:
+    async def test_calls_events_endpoint(self, mock_client: AsyncMock) -> None:
+        mock_client.get.return_value = [{"id": 1, "description": "task started"}]
+        result = await projects.get_project_events(1)
+
+        mock_client.get.assert_called_once_with("/api/project/1/events")
+        assert result[0]["description"] == "task started"
+
+
+class TestBackupProject:
+    async def test_returns_backup(self, mock_client: AsyncMock) -> None:
+        mock_client.get.return_value = {"meta": {"name": "homelab"}, "templates": []}
+        result = await projects.backup_project(1)
+
+        mock_client.get.assert_called_once_with("/api/project/1/backup")
+        assert "templates" in result

@@ -67,6 +67,36 @@ class TestCreateInventory:
         assert result["type"] == "file"
 
 
+class TestUpdateInventory:
+    async def test_updates_inventory(self, mock_client: AsyncMock) -> None:
+        result = await inventory.update_inventory(
+            project_id=1,
+            inventory_id=5,
+            name="prod-updated",
+            inventory_type="static",
+            inventory="[servers]\n10.0.0.1",
+            ssh_key_id=3,
+        )
+
+        call_kwargs = mock_client.put.call_args.kwargs["json"]
+        assert call_kwargs["id"] == 5
+        assert call_kwargs["name"] == "prod-updated"
+        assert call_kwargs["ssh_key_id"] == 3
+        assert result == {"status": "ok"}
+
+    async def test_update_inventory_without_keys(self, mock_client: AsyncMock) -> None:
+        await inventory.update_inventory(
+            project_id=1,
+            inventory_id=5,
+            name="dev",
+            inventory_type="file",
+        )
+
+        call_kwargs = mock_client.put.call_args.kwargs["json"]
+        assert "ssh_key_id" not in call_kwargs
+        assert "become_key_id" not in call_kwargs
+
+
 class TestDeleteInventory:
     async def test_deletes_inventory(self, mock_client: AsyncMock) -> None:
         result = await inventory.delete_inventory(1, 5)

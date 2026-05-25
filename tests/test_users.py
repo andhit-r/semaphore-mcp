@@ -64,6 +64,19 @@ class TestCreateUser:
         )
         assert result["username"] == "bob"
 
+    async def test_creates_admin_user(self, mock_client: AsyncMock) -> None:
+        mock_client.post.return_value = {"id": 4, "admin": True}
+        await users.create_user(
+            name="Admin",
+            username="superadmin",
+            email="admin@example.com",
+            password="s3cret",
+            admin=True,
+        )
+
+        call_json = mock_client.post.call_args.kwargs["json"]
+        assert call_json["admin"] is True
+
 
 class TestUpdateUser:
     async def test_updates_user(self, mock_client: AsyncMock) -> None:

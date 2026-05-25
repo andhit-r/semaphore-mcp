@@ -88,6 +88,40 @@ class TestCreateTemplate:
         assert "ssh_key_id" not in call_kwargs
 
 
+class TestUpdateTemplate:
+    async def test_updates_template(self, mock_client: AsyncMock) -> None:
+        result = await templates.update_template(
+            project_id=1,
+            template_id=7,
+            name="Deploy Updated",
+            playbook="deploy.yml",
+            inventory_id=5,
+            repository_id=4,
+            environment_id=6,
+        )
+
+        call_kwargs = mock_client.put.call_args.kwargs["json"]
+        assert call_kwargs["id"] == 7
+        assert call_kwargs["name"] == "Deploy Updated"
+        assert call_kwargs["playbook"] == "deploy.yml"
+        assert result == {"status": "ok"}
+
+    async def test_update_template_with_ssh_key(self, mock_client: AsyncMock) -> None:
+        await templates.update_template(
+            project_id=1,
+            template_id=7,
+            name="Secure Deploy",
+            playbook="site.yml",
+            inventory_id=5,
+            repository_id=4,
+            environment_id=6,
+            ssh_key_id=3,
+        )
+
+        call_kwargs = mock_client.put.call_args.kwargs["json"]
+        assert call_kwargs["ssh_key_id"] == 3
+
+
 class TestDeleteTemplate:
     async def test_deletes_template(self, mock_client: AsyncMock) -> None:
         result = await templates.delete_template(1, 7)
