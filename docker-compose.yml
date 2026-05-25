@@ -1,0 +1,18 @@
+services:
+  semaphore-mcp:
+    build: .
+    image: ghcr.io/andhit-r/semaphore-mcp:latest
+    environment:
+      SEMAPHORE_URL: "${SEMAPHORE_URL:-http://semaphore:3000}"
+      SEMAPHORE_API_TOKEN: "${SEMAPHORE_API_TOKEN:-}"
+      SEMAPHORE_USERNAME: "${SEMAPHORE_USERNAME:-admin}"
+      SEMAPHORE_PASSWORD: "${SEMAPHORE_PASSWORD:-changeme}"
+      SEMAPHORE_TRANSPORT: "${SEMAPHORE_TRANSPORT:-sse}"
+      HOST: "0.0.0.0"
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
