@@ -41,9 +41,7 @@ def session_config() -> SemaphoreConfig:
 
 
 class TestApiTokenAuth:
-    def test_bearer_header_set_on_init(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    def test_bearer_header_set_on_init(self, api_token_config: SemaphoreConfig) -> None:
         client = SemaphoreClient(api_token_config)
         assert client._http.headers.get("Authorization") == "Bearer test-api-token"
         assert client._authenticated is True
@@ -53,9 +51,7 @@ class TestApiTokenAuth:
     ) -> None:
         client = SemaphoreClient(api_token_config)
         await client.authenticate()
-        assert "Bearer test-api-token" in client._http.headers.get(
-            "Authorization", ""
-        )
+        assert "Bearer test-api-token" in client._http.headers.get("Authorization", "")
 
 
 class TestSessionAuth:
@@ -63,9 +59,7 @@ class TestSessionAuth:
         self, session_config: SemaphoreConfig
     ) -> None:
         with respx.mock(base_url=BASE_URL) as router:
-            router.post("/api/auth/login").mock(
-                return_value=httpx.Response(204)
-            )
+            router.post("/api/auth/login").mock(return_value=httpx.Response(204))
             client = SemaphoreClient(session_config)
             await client.authenticate()
             assert client._authenticated is True
@@ -75,9 +69,7 @@ class TestSessionAuth:
     ) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/auth/login").mock(
-                return_value=httpx.Response(
-                    400, json={"error": "invalid credentials"}
-                )
+                return_value=httpx.Response(400, json={"error": "invalid credentials"})
             )
             client = SemaphoreClient(session_config)
             with pytest.raises(SemaphoreAuthError):
@@ -85,9 +77,7 @@ class TestSessionAuth:
 
 
 class TestRequestHelpers:
-    async def test_get_returns_json(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_get_returns_json(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.get("/api/projects").mock(
                 return_value=httpx.Response(200, json=[{"id": 1}])
@@ -96,9 +86,7 @@ class TestRequestHelpers:
             result = await client.get("/api/projects")
             assert result == [{"id": 1}]
 
-    async def test_post_returns_json(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_post_returns_json(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/projects").mock(
                 return_value=httpx.Response(201, json={"id": 2, "name": "test"})
@@ -111,9 +99,7 @@ class TestRequestHelpers:
         self, api_token_config: SemaphoreConfig
     ) -> None:
         with respx.mock(base_url=BASE_URL) as router:
-            router.post("/api/auth/logout").mock(
-                return_value=httpx.Response(204)
-            )
+            router.post("/api/auth/logout").mock(return_value=httpx.Response(204))
             client = SemaphoreClient(api_token_config)
             result = await client.post("/api/auth/logout")
             assert result is None
@@ -122,9 +108,7 @@ class TestRequestHelpers:
         self, api_token_config: SemaphoreConfig
     ) -> None:
         with respx.mock(base_url=BASE_URL) as router:
-            router.delete("/api/project/99/").mock(
-                return_value=httpx.Response(404)
-            )
+            router.delete("/api/project/99/").mock(return_value=httpx.Response(404))
             client = SemaphoreClient(api_token_config)
             with pytest.raises(SemaphoreNotFoundError):
                 await client.delete("/api/project/99/")
@@ -141,12 +125,11 @@ class TestRequestHelpers:
                 await client.get("/api/projects")
             assert exc_info.value.status_code == 500
 
-    async def test_reauth_on_401(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_reauth_on_401(self, api_token_config: SemaphoreConfig) -> None:
         call_count = 0
 
         with respx.mock(base_url=BASE_URL) as router:
+
             def side_effect(request: httpx.Request) -> httpx.Response:
                 nonlocal call_count
                 call_count += 1
@@ -166,12 +149,8 @@ class TestLogout:
         self, session_config: SemaphoreConfig
     ) -> None:
         with respx.mock(base_url=BASE_URL) as router:
-            router.post("/api/auth/login").mock(
-                return_value=httpx.Response(204)
-            )
-            router.post("/api/auth/logout").mock(
-                return_value=httpx.Response(204)
-            )
+            router.post("/api/auth/login").mock(return_value=httpx.Response(204))
+            router.post("/api/auth/logout").mock(return_value=httpx.Response(204))
             client = SemaphoreClient(session_config)
             await client.authenticate()
             assert client._authenticated is True

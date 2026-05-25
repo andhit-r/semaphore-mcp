@@ -77,9 +77,7 @@ class TestStartTask:
         assert call_kwargs["message"] == "manual deploy"
         assert call_kwargs["git_branch"] == "hotfix"
 
-    async def test_empty_optional_fields_omitted(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_empty_optional_fields_omitted(self, mock_client: AsyncMock) -> None:
         mock_client.post.return_value = {"id": 26}
         await tasks.start_task(project_id=1, template_id=7)
 
@@ -123,7 +121,5 @@ class TestGetTaskOutput:
         ]
         result = await tasks.get_task_output(1, 23)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/tasks/23/output"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/tasks/23/output")
         assert result[0]["output"] == "ok"

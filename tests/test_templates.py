@@ -34,9 +34,7 @@ class TestGetTemplate:
         mock_client.get.return_value = {"id": 7, "playbook": "deploy.yml"}
         result = await templates.get_template(1, 7)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/templates/7"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/templates/7")
         assert result["playbook"] == "deploy.yml"
 
 
@@ -58,9 +56,7 @@ class TestCreateTemplate:
         assert call_kwargs["app"] == "ansible"
         assert result["name"] == "Deploy"
 
-    async def test_creates_template_with_ssh_key(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_creates_template_with_ssh_key(self, mock_client: AsyncMock) -> None:
         mock_client.post.return_value = {"id": 9}
         await templates.create_template(
             project_id=1,
@@ -96,9 +92,7 @@ class TestDeleteTemplate:
     async def test_deletes_template(self, mock_client: AsyncMock) -> None:
         result = await templates.delete_template(1, 7)
 
-        mock_client.delete.assert_called_once_with(
-            "/api/project/1/templates/7"
-        )
+        mock_client.delete.assert_called_once_with("/api/project/1/templates/7")
         assert result == {"status": "ok"}
 
 

@@ -67,9 +67,7 @@ async def get_inventory(project_id: int, inventory_id: int) -> dict[str, Any]:
     >>> inv = await get_inventory(1, 5)
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/inventory/{inventory_id}"
-    )
+    return await client.get(f"/api/project/{project_id}/inventory/{inventory_id}")
 
 
 async def create_inventory(
@@ -177,9 +175,7 @@ async def update_inventory(
         body["become_key_id"] = become_key_id
     if repository_id:
         body["repository_id"] = repository_id
-    await client.put(
-        f"/api/project/{project_id}/inventory/{inventory_id}", json=body
-    )
+    await client.put(f"/api/project/{project_id}/inventory/{inventory_id}", json=body)
     return {"status": "ok"}
 
 

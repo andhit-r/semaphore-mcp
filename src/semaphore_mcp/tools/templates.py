@@ -68,9 +68,7 @@ async def get_template(project_id: int, template_id: int) -> dict[str, Any]:
     >>> tmpl = await get_template(1, 7)
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/templates/{template_id}"
-    )
+    return await client.get(f"/api/project/{project_id}/templates/{template_id}")
 
 
 async def create_template(
@@ -160,9 +158,7 @@ async def create_template(
         body["git_branch"] = git_branch
     if view_id:
         body["view_id"] = view_id
-    return await client.post(
-        f"/api/project/{project_id}/templates", json=body
-    )
+    return await client.post(f"/api/project/{project_id}/templates", json=body)
 
 
 async def update_template(
@@ -251,9 +247,7 @@ async def update_template(
         body["git_branch"] = git_branch
     if view_id:
         body["view_id"] = view_id
-    await client.put(
-        f"/api/project/{project_id}/templates/{template_id}", json=body
-    )
+    await client.put(f"/api/project/{project_id}/templates/{template_id}", json=body)
     return {"status": "ok"}
 
 

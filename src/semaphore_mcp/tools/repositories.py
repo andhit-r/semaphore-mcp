@@ -65,9 +65,7 @@ async def get_repository(project_id: int, repository_id: int) -> dict[str, Any]:
     >>> repo = await get_repository(1, 2)
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/repositories/{repository_id}"
-    )
+    return await client.get(f"/api/project/{project_id}/repositories/{repository_id}")
 
 
 async def create_repository(
@@ -176,7 +174,5 @@ async def delete_repository(project_id: int, repository_id: int) -> dict[str, st
         ``{"status": "ok"}`` on success.
     """
     client = get_client()
-    await client.delete(
-        f"/api/project/{project_id}/repositories/{repository_id}"
-    )
+    await client.delete(f"/api/project/{project_id}/repositories/{repository_id}")
     return {"status": "ok"}

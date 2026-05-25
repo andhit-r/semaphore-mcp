@@ -34,9 +34,7 @@ class TestGetRepository:
         mock_client.get.return_value = {"id": 2, "name": "demo"}
         result = await repositories.get_repository(1, 2)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/repositories/2"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/repositories/2")
         assert result["id"] == 2
 
 
@@ -80,7 +78,5 @@ class TestDeleteRepository:
     async def test_deletes_repository(self, mock_client: AsyncMock) -> None:
         result = await repositories.delete_repository(1, 3)
 
-        mock_client.delete.assert_called_once_with(
-            "/api/project/1/repositories/3"
-        )
+        mock_client.delete.assert_called_once_with("/api/project/1/repositories/3")
         assert result == {"status": "ok"}

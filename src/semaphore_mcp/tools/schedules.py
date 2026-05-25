@@ -35,9 +35,7 @@ async def get_schedule(project_id: int, schedule_id: int) -> dict[str, Any]:
     >>> sched = await get_schedule(1, 9)
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/schedules/{schedule_id}"
-    )
+    return await client.get(f"/api/project/{project_id}/schedules/{schedule_id}")
 
 
 async def create_schedule(
@@ -145,7 +143,5 @@ async def delete_schedule(project_id: int, schedule_id: int) -> dict[str, str]:
         ``{"status": "ok"}`` on success.
     """
     client = get_client()
-    await client.delete(
-        f"/api/project/{project_id}/schedules/{schedule_id}"
-    )
+    await client.delete(f"/api/project/{project_id}/schedules/{schedule_id}")
     return {"status": "ok"}

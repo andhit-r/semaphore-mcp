@@ -34,9 +34,7 @@ class TestGetInventory:
         mock_client.get.return_value = {"id": 5, "name": "prod"}
         result = await inventory.get_inventory(1, 5)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/inventory/5"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/inventory/5")
         assert result["id"] == 5
 
 
@@ -73,7 +71,5 @@ class TestDeleteInventory:
     async def test_deletes_inventory(self, mock_client: AsyncMock) -> None:
         result = await inventory.delete_inventory(1, 5)
 
-        mock_client.delete.assert_called_once_with(
-            "/api/project/1/inventory/5"
-        )
+        mock_client.delete.assert_called_once_with("/api/project/1/inventory/5")
         assert result == {"status": "ok"}

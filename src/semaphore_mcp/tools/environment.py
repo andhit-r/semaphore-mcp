@@ -46,9 +46,7 @@ async def list_environments(
     )
 
 
-async def get_environment(
-    project_id: int, environment_id: int
-) -> dict[str, Any]:
+async def get_environment(project_id: int, environment_id: int) -> dict[str, Any]:
     """Fetch a specific environment.
 
     Parameters
@@ -69,9 +67,7 @@ async def get_environment(
     >>> env = await get_environment(1, 6)
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/environment/{environment_id}"
-    )
+    return await client.get(f"/api/project/{project_id}/environment/{environment_id}")
 
 
 async def create_environment(
@@ -165,9 +161,7 @@ async def update_environment(
     return {"status": "ok"}
 
 
-async def delete_environment(
-    project_id: int, environment_id: int
-) -> dict[str, str]:
+async def delete_environment(project_id: int, environment_id: int) -> dict[str, str]:
     """Remove an environment from a project.
 
     Parameters
@@ -183,7 +177,5 @@ async def delete_environment(
         ``{"status": "ok"}`` on success.
     """
     client = get_client()
-    await client.delete(
-        f"/api/project/{project_id}/environment/{environment_id}"
-    )
+    await client.delete(f"/api/project/{project_id}/environment/{environment_id}")
     return {"status": "ok"}

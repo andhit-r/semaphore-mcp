@@ -26,9 +26,7 @@ class TestGetSchedule:
         }
         result = await schedules.get_schedule(1, 9)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/schedules/9"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/schedules/9")
         assert result["cron_format"] == "0 2 * * *"
 
 
@@ -84,7 +82,5 @@ class TestDeleteSchedule:
     async def test_deletes_schedule(self, mock_client: AsyncMock) -> None:
         result = await schedules.delete_schedule(1, 10)
 
-        mock_client.delete.assert_called_once_with(
-            "/api/project/1/schedules/10"
-        )
+        mock_client.delete.assert_called_once_with("/api/project/1/schedules/10")
         assert result == {"status": "ok"}

@@ -208,9 +208,7 @@ async def delete_task(project_id: int, task_id: int) -> dict[str, str]:
     return {"status": "ok"}
 
 
-async def get_task_output(
-    project_id: int, task_id: int
-) -> list[dict[str, Any]]:
+async def get_task_output(project_id: int, task_id: int) -> list[dict[str, Any]]:
     """Retrieve the output lines for a task.
 
     Parameters
@@ -233,6 +231,4 @@ async def get_task_output(
     ...     print(line["output"])
     """
     client = get_client()
-    return await client.get(
-        f"/api/project/{project_id}/tasks/{task_id}/output"
-    )
+    return await client.get(f"/api/project/{project_id}/tasks/{task_id}/output")

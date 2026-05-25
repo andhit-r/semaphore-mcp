@@ -18,9 +18,7 @@ def inject_mock_client(mock_client: AsyncMock) -> None:
 
 
 class TestLogin:
-    async def test_calls_authenticate_on_client(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_calls_authenticate_on_client(self, mock_client: AsyncMock) -> None:
         result = await auth.login()
 
         mock_client.authenticate.assert_called_once()
@@ -54,9 +52,7 @@ class TestCreateToken:
         )
         assert result["id"] == "newtok"
 
-    async def test_create_token_without_name(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_create_token_without_name(self, mock_client: AsyncMock) -> None:
         mock_client.post.return_value = {"id": "newtok"}
         result = await auth.create_token()
 

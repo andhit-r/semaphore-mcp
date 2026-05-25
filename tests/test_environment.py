@@ -34,9 +34,7 @@ class TestGetEnvironment:
         mock_client.get.return_value = {"id": 6, "name": "Empty", "json": "{}"}
         result = await environment.get_environment(1, 6)
 
-        mock_client.get.assert_called_once_with(
-            "/api/project/1/environment/6"
-        )
+        mock_client.get.assert_called_once_with("/api/project/1/environment/6")
         assert result["id"] == 6
 
 
@@ -81,7 +79,5 @@ class TestDeleteEnvironment:
     async def test_deletes_environment(self, mock_client: AsyncMock) -> None:
         result = await environment.delete_environment(1, 7)
 
-        mock_client.delete.assert_called_once_with(
-            "/api/project/1/environment/7"
-        )
+        mock_client.delete.assert_called_once_with("/api/project/1/environment/7")
         assert result == {"status": "ok"}
