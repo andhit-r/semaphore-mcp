@@ -1,0 +1,37 @@
+# Dockerignore khusus untuk Dockerfile.test.
+# Dipakai BuildKit secara otomatis saat `docker build -f Dockerfile.test`.
+# Berbeda dari .dockerignore (runtime): tests/ dan requirements-test.txt TIDAK dikecualikan
+# karena image test membutuhkan keduanya.
+
+.git
+.gitignore
+.github
+.dockerignore
+
+# Artefak Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+dist/
+build/
+
+# Virtualenv lokal
+.venv/
+venv/
+env/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Variabel environment lokal (jangan ikut masuk image)
+.env

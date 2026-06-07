@@ -51,9 +51,7 @@ class TestCreateKey:
 
     async def test_creates_ssh_key(self, mock_client: AsyncMock) -> None:
         mock_client.post.return_value = {"id": 3, "type": "ssh"}
-        result = await keys.create_key(
-            1, "deploy", "ssh", login="ubuntu", private_key="-----BEGIN"
-        )
+        result = await keys.create_key(1, "deploy", "ssh", login="ubuntu", private_key="-----BEGIN")
 
         call_kwargs = mock_client.post.call_args.kwargs["json"]
         assert call_kwargs["type"] == "ssh"

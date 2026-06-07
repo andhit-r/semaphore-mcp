@@ -46,9 +46,7 @@ class TestListEvents:
         mock_client.get.assert_called_once_with("/api/events")
         assert result[0]["description"] == "Project created"
 
-    async def test_returns_empty_list_when_no_events(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_returns_empty_list_when_no_events(self, mock_client: AsyncMock) -> None:
         mock_client.get.return_value = []
         result = await system.list_events()
         assert result == []

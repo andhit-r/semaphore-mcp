@@ -58,9 +58,7 @@ class TestCreateInventory:
         self, mock_client: AsyncMock
     ) -> None:
         mock_client.post.return_value = {"id": 7, "type": "file"}
-        result = await inventory.create_inventory(
-            project_id=1, name="dev", inventory_type="file"
-        )
+        result = await inventory.create_inventory(project_id=1, name="dev", inventory_type="file")
 
         call_kwargs = mock_client.post.call_args.kwargs["json"]
         assert "ssh_key_id" not in call_kwargs

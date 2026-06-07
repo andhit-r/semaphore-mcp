@@ -71,9 +71,7 @@ class TestCreateTemplate:
         call_kwargs = mock_client.post.call_args.kwargs["json"]
         assert call_kwargs["ssh_key_id"] == 3
 
-    async def test_optional_ssh_key_omitted_when_zero(
-        self, mock_client: AsyncMock
-    ) -> None:
+    async def test_optional_ssh_key_omitted_when_zero(self, mock_client: AsyncMock) -> None:
         mock_client.post.return_value = {"id": 10}
         await templates.create_template(
             project_id=1,

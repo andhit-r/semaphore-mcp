@@ -156,9 +156,7 @@ async def start_task(
     return await client.post(f"/api/project/{project_id}/tasks", json=body)
 
 
-async def stop_task(
-    project_id: int, task_id: int, force: bool = False
-) -> dict[str, str]:
+async def stop_task(project_id: int, task_id: int, force: bool = False) -> dict[str, str]:
     """Stop a running task.
 
     Parameters

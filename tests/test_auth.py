@@ -47,9 +47,7 @@ class TestCreateToken:
         mock_client.post.return_value = {"id": "newtok", "name": "ci"}
         result = await auth.create_token(name="ci")
 
-        mock_client.post.assert_called_once_with(
-            "/api/user/tokens", json={"name": "ci"}
-        )
+        mock_client.post.assert_called_once_with("/api/user/tokens", json={"name": "ci"})
         assert result["id"] == "newtok"
 
     async def test_create_token_without_name(self, mock_client: AsyncMock) -> None:

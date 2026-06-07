@@ -46,27 +46,21 @@ class TestApiTokenAuth:
         assert client._http.headers.get("Authorization") == "Bearer test-api-token"
         assert client._authenticated is True
 
-    async def test_authenticate_refreshes_header(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_authenticate_refreshes_header(self, api_token_config: SemaphoreConfig) -> None:
         client = SemaphoreClient(api_token_config)
         await client.authenticate()
         assert "Bearer test-api-token" in client._http.headers.get("Authorization", "")
 
 
 class TestSessionAuth:
-    async def test_authenticate_posts_to_login(
-        self, session_config: SemaphoreConfig
-    ) -> None:
+    async def test_authenticate_posts_to_login(self, session_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/auth/login").mock(return_value=httpx.Response(204))
             client = SemaphoreClient(session_config)
             await client.authenticate()
             assert client._authenticated is True
 
-    async def test_authenticate_raises_on_failure(
-        self, session_config: SemaphoreConfig
-    ) -> None:
+    async def test_authenticate_raises_on_failure(self, session_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/auth/login").mock(
                 return_value=httpx.Response(400, json={"error": "invalid credentials"})
@@ -79,9 +73,7 @@ class TestSessionAuth:
 class TestRequestHelpers:
     async def test_get_returns_json(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
-            router.get("/api/projects").mock(
-                return_value=httpx.Response(200, json=[{"id": 1}])
-            )
+            router.get("/api/projects").mock(return_value=httpx.Response(200, json=[{"id": 1}]))
             client = SemaphoreClient(api_token_config)
             result = await client.get("/api/projects")
             assert result == [{"id": 1}]
@@ -95,27 +87,21 @@ class TestRequestHelpers:
             result = await client.post("/api/projects", json={"name": "test"})
             assert result == {"id": 2, "name": "test"}
 
-    async def test_post_returns_none_on_204(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_post_returns_none_on_204(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/auth/logout").mock(return_value=httpx.Response(204))
             client = SemaphoreClient(api_token_config)
             result = await client.post("/api/auth/logout")
             assert result is None
 
-    async def test_delete_raises_not_found_on_404(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_delete_raises_not_found_on_404(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.delete("/api/project/99/").mock(return_value=httpx.Response(404))
             client = SemaphoreClient(api_token_config)
             with pytest.raises(SemaphoreNotFoundError):
                 await client.delete("/api/project/99/")
 
-    async def test_raises_semaphore_error_on_500(
-        self, api_token_config: SemaphoreConfig
-    ) -> None:
+    async def test_raises_semaphore_error_on_500(self, api_token_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.get("/api/projects").mock(
                 return_value=httpx.Response(500, text="Internal Server Error")
@@ -145,9 +131,7 @@ class TestRequestHelpers:
 
 
 class TestLogout:
-    async def test_logout_clears_auth_state(
-        self, session_config: SemaphoreConfig
-    ) -> None:
+    async def test_logout_clears_auth_state(self, session_config: SemaphoreConfig) -> None:
         with respx.mock(base_url=BASE_URL) as router:
             router.post("/api/auth/login").mock(return_value=httpx.Response(204))
             router.post("/api/auth/logout").mock(return_value=httpx.Response(204))

@@ -105,11 +105,7 @@ class SemaphoreClient:
         if self._config.api_token:
             logger.debug("Using API token authentication")
             self._http.headers.update(
-                {
-                    "Authorization": (
-                        f"Bearer {self._config.api_token.get_secret_value()}"
-                    )
-                }
+                {"Authorization": (f"Bearer {self._config.api_token.get_secret_value()}")}
             )
             self._authenticated = True
             return
