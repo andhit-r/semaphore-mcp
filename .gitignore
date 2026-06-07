@@ -15,14 +15,17 @@ build/
 venv/
 env/
 
-# Testing
+# Testing & coverage
 .pytest_cache/
 .coverage
+.coverage.*
 htmlcov/
+coverage.xml
 .tox/
 
-# Type checkers
+# Type checkers & linters
 .mypy_cache/
+.ruff_cache/
 
 # IDEs
 .vscode/
@@ -34,5 +37,5 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Distribution
-dist/
+# Lokal (jangan commit)
+.env

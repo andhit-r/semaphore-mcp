@@ -1,9 +1,14 @@
-"""FastMCP server for Semaphore UI.
+"""FastMCP server untuk Semaphore UI.
 
-Registers all tool functions and exposes a :func:`run` entry point that
-honours the ``SEMAPHORE_TRANSPORT``, ``SEMAPHORE_HOST``, and
-``SEMAPHORE_PORT`` environment variables for choosing between stdio and
-SSE transports.
+Auth pintu depan dipilih berdasarkan konfigurasi (lihat config.py):
+  - Authentik OAuth (Claude.ai): aktif bila AUTHENTIK_* + MCP_BASE_URL diisi.
+    Pengguna login via Authentik; AUTHENTIK_ALLOWED_USERNAMES membatasi (kosong=semua).
+  - API Key (VS Code/CLI): aktif bila MCP_API_KEY diisi (Authorization: Bearer <key>).
+  - Keduanya bisa aktif bersamaan via MultiAuth.
+  - Tanpa konfigurasi: tanpa auth (hanya untuk stdio / jaringan lokal).
+
+Mendaftarkan semua fungsi tool Semaphore dan mengekspos fungsi :func:`run`
+yang menghormati ``MCP_TRANSPORT``, ``MCP_HOST``, dan ``MCP_PORT``.
 """
 
 from __future__ import annotations
@@ -12,6 +17,7 @@ import logging
 
 from fastmcp import FastMCP
 
+from .config import settings
 from .tools import (
     auth,
     environment,
@@ -28,15 +34,64 @@ from .tools import (
 
 logger = logging.getLogger(__name__)
 
+# ── Pemilihan auth pintu depan ────────────────────────────────────────────────
+_auth = None
+_authentik_aktif = bool(
+    settings.authentik_base_url
+    and settings.authentik_app_slug
+    and settings.authentik_client_id
+    and settings.authentik_client_secret
+    and settings.mcp_base_url
+)
+
+if _authentik_aktif:
+    from fastmcp.server.auth import MultiAuth
+
+    from .auth_provider import AuthentikProvider, BearerApiKeyVerifier
+
+    logger.info("OAuth Authentik AKTIF — slug: %s", settings.authentik_app_slug)
+    _provider = AuthentikProvider(
+        authentik_base_url=settings.authentik_base_url,
+        application_slug=settings.authentik_app_slug,
+        client_id=settings.authentik_client_id,
+        client_secret=settings.authentik_client_secret,
+        base_url=settings.mcp_base_url,
+        allowed_usernames=settings.authentik_allowed_usernames,
+        require_authorization_consent="external",
+    )
+    if settings.mcp_api_key:
+        logger.info("API Key AKTIF (MultiAuth: Authentik OAuth + API Key)")
+        _auth = MultiAuth(
+            server=_provider,
+            verifiers=[BearerApiKeyVerifier(api_key=settings.mcp_api_key)],
+        )
+    else:
+        _auth = _provider
+
+elif settings.mcp_api_key:
+    from fastmcp.server.auth import MultiAuth
+
+    from .auth_provider import BearerApiKeyVerifier
+
+    logger.info("API Key AKTIF (tanpa OAuth)")
+    _auth = MultiAuth(verifiers=[BearerApiKeyVerifier(api_key=settings.mcp_api_key)])
+
+else:
+    logger.warning(
+        "Tidak ada auth dikonfigurasi — server terbuka. Isi AUTHENTIK_* + MCP_BASE_URL "
+        "untuk deployment Claude Web."
+    )
+
 mcp = FastMCP(
-    "Semaphore UI MCP",
+    name=settings.mcp_server_name,
+    auth=_auth,
     instructions=(
-        "MCP server for managing Semaphore UI via its REST API. "
-        "Provides tools for creating and managing projects, templates, "
+        "MCP server untuk mengelola Semaphore UI via REST API. "
+        "Menyediakan tools untuk membuat dan mengelola projects, templates, "
         "tasks, inventories, repositories, access keys, environments, "
-        "schedules, and users. "
-        "Configure the server via environment variables: SEMAPHORE_URL, "
-        "SEMAPHORE_API_TOKEN (or SEMAPHORE_USERNAME + SEMAPHORE_PASSWORD)."
+        "schedules, dan users. "
+        "Konfigurasi koneksi via env: SEMAPHORE_URL, "
+        "SEMAPHORE_API_TOKEN (atau SEMAPHORE_USERNAME + SEMAPHORE_PASSWORD)."
     ),
 )
 
@@ -138,21 +193,23 @@ mcp.tool()(tasks.get_task_output)
 
 
 def run() -> None:
-    """Start the MCP server using the configured transport.
+    """Start the MCP server menggunakan transport yang dikonfigurasi.
 
-    Transport is controlled by the ``SEMAPHORE_TRANSPORT`` environment
-    variable (``stdio`` or ``sse``).  When ``sse`` is chosen the server
-    binds to ``SEMAPHORE_HOST``/``SEMAPHORE_PORT``
-    (default ``0.0.0.0:8000``).
+    Transport dikontrol via ``MCP_TRANSPORT`` (``stdio`` default, atau ``http``/``sse``).
+    Untuk deployment cloud via uvicorn, gunakan ``semaphore_mcp.asgi:app``.
     """
-    from .config import get_config
-
-    config = get_config()
-    transport = config.transport.lower()
-
-    if transport == "sse":
-        logger.info("Starting SSE server on %s:%d", config.host, config.port)
-        mcp.run(transport="sse", host=config.host, port=config.port)
-    else:
+    if settings.mcp_transport == "stdio":
         logger.info("Starting stdio server")
-        mcp.run(transport="stdio")
+        mcp.run()
+    else:
+        logger.info(
+            "Starting %s server pada %s:%d",
+            settings.mcp_transport,
+            settings.mcp_host,
+            settings.mcp_port,
+        )
+        mcp.run(
+            transport=settings.mcp_transport,
+            host=settings.mcp_host,
+            port=settings.mcp_port,
+        )

@@ -1,12 +1,14 @@
-"""CLI entry point for the Semaphore UI MCP server.
+"""CLI entry point untuk Semaphore UI MCP server.
 
-Run with::
+Pilih transport via environment (MCPSettings):
+  - ``stdio`` (default) → MCP client lokal (Claude Desktop / Claude Code stdio).
+  - ``http`` / ``sse``  → service / remote (Claude Code remote, Claude Web).
 
-    python -m semaphore_mcp
-
-or via the installed script::
+Dijalankan via ``python -m semaphore_mcp`` atau entrypoint script::
 
     semaphore-mcp
+
+Untuk deployment cloud lewat uvicorn, gunakan ``semaphore_mcp.asgi:app`` (lihat asgi.py).
 """
 
 import logging
@@ -14,12 +16,19 @@ import sys
 
 
 def main() -> None:
-    """Configure logging and start the MCP server."""
+    """Konfigurasi logging lalu mulai MCP server sesuai transport yang dikonfigurasi.
+
+    Level logging diambil dari ``MCP_LOG_LEVEL`` (default ``INFO``).
+    Transport dan bind address dikontrol via :class:`~semaphore_mcp.config.MCPSettings`.
+    """
+    from .config import settings
+
     logging.basicConfig(
-        level=logging.INFO,
+        level=getattr(logging, settings.mcp_log_level.upper(), logging.INFO),
         format="%(asctime)s %(levelname)-8s %(name)s %(message)s",
         stream=sys.stderr,
     )
+
     from .server import run
 
     run()
