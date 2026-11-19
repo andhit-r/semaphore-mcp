@@ -1,60 +1,55 @@
-# Rilis project MCP: dipicu saat tag versi `v*` di-push.
-# Menghasilkan: (1) GitHub Release  dan  (2) Docker Image ke GHCR.
-#
-# Selaras dengan tagging semver dari skill git-workflow:
-#   git tag -a v1.0.0 -m "Rilis v1.0.0" && git push origin v1.0.0
+# release.yml — KOMPOSISI: GitHub Release + Docker image ke GHCR (proyek service).
+# Dua job independen; masing-masing reusable workflow terpisah.
+# Semver, isi catatan rilis, dan pembuatan tag = skill git-workflow.
+# Job verify-version = gerbang versi berkas = tag (aturan & perbaikannya: skill git-workflow, assets/sync-version.sh)
 name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    tags: ['v*']
+
+permissions:
+  contents: write     # untuk GitHub Release
+  packages: write     # untuk push image ke GHCR
 
 jobs:
-  github-release:
+  verify-version:
+    # GERBANG VERSI: berkas versi project HARUS sama dengan tag. Aturan & perbaikannya milik
+    # skill git-workflow (assets/sync-version.sh --check|--write dijalankan SEBELUM tag);
+    # job ini backstop di CI supaya tag yang lolos tanpa bump GAGAL di sini — bukan terbit
+    # diam-diam dengan versi lama di /health, Swagger, package.json, versionName, dsb.
+    # Deteksi otomatis: pyproject.toml (statis), src/*/__init__.py (__version__), package.json,
+    # app/build.gradle.kts (versionName), heading teratas CHANGELOG.md. Tak ada satu pun → lewat.
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Buat GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
+      - name: Versi berkas project = tag
+        shell: bash
+        run: |
+          VER="${GITHUB_REF_NAME#v}"; fail=0; found=0
+          chk() { found=1; if [ "$2" = "$VER" ]; then echo "OK  $1 = $2"; else echo "::error file=$1::versi di $1 = '$2', tag = $VER"; fail=1; fi; }
+          [ -f pyproject.toml ] && ! grep -Eq '^dynamic\s*=\s*\[[^]]*"version"' pyproject.toml \
+            && chk pyproject.toml "$(grep -E '^version\s*=' pyproject.toml | head -1 | grep -oE '"[^"]+"' | tr -d '"')"
+          for f in src/*/__init__.py; do [ -f "$f" ] && grep -Eq '^__version__' "$f" \
+            && chk "$f" "$(grep -E '^__version__' "$f" | head -1 | grep -oE '"[^"]+"' | tr -d '"')"; done
+          [ -f package.json ] && chk package.json "$(grep -E '^\s*"version"\s*:' package.json | head -1 | sed -E 's/.*:\s*"([^"]*)".*/\1/')"
+          [ -f app/build.gradle.kts ] && chk app/build.gradle.kts "$(grep -E '^\s*versionName' app/build.gradle.kts | head -1 | grep -oE '"[^"]+"' | tr -d '"')"
+          [ -f CHANGELOG.md ] && chk CHANGELOG.md "$(grep -m1 -oE '^## \[?v?[0-9]+\.[0-9]+\.[0-9]+[^] ]*' CHANGELOG.md | sed -E 's/^## \[?v?//')"
+          [ "$found" = 1 ] || echo "::notice::tidak ada berkas versi yang dikenali — gerbang dilewati"
+          [ "$fail" = 0 ] || { echo "::error::Jalankan sync-version.sh (skill git-workflow) . $GITHUB_REF_NAME --write, commit, hapus & buat ulang tag"; exit 1; }
+
+  # Ganti andhit-r dengan owner tempat repo workflow di-host (Aturan #3).
+  github-release:
+    needs: verify-version
+    uses: andhit-r/github-release/.github/workflows/release.yml@v1
+    secrets: inherit
 
   docker-image:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - name: Login ke GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Tentukan tags & labels image
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
-
-      - name: Build & push image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+    needs: verify-version
+    uses: andhit-r/release-docker-image-ghcr/.github/workflows/ghcr.yml@v2
+    with:
+      dockerfile: Dockerfile
+      platforms: linux/amd64,linux/arm64
+      # build_args: |               # mis. Next.js: NEXT_PUBLIC_*
+      #   NEXT_PUBLIC_API_BASE_URL=https://api.example.com
+    secrets: inherit
